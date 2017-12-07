@@ -1,7 +1,7 @@
 #!/bin/sh
 
 work=$1
-scriptsDir="
+scriptsDir="/Users/tbrc/staging/processing/scripts/travis-sandbox"
 
 pushd $work/images
 sh ${scriptsDir}/rename_all.sh
