@@ -1,7 +1,7 @@
 #!/bin/sh
 
 work=$1
-scriptsDir="/Users/tbrc/staging/scripts"
+scriptsDir="
 
 pushd $work/images
 sh ${scriptsDir}/rename_all.sh

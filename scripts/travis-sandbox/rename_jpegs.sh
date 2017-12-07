@@ -9,7 +9,7 @@ for dir in `ls -d W*`; do
 
   cd $dir 
 
-  for file in `ls *.jpg | xargs sh /Users/tbrc/staging/scripts/sort-version-2.sh`; do
+  for file in `ls *.jpg | xargs sh /Users/tbrc/staging/processing/scripts/travis-sandbox/sort-version-2.sh`; do
     image_number_zero_padded=`printf "%04d" $image_number`
     new_filename=$(echo ${image_group}${image_number_zero_padded}.jpg)
 #    mv -nv $file $new_filename
