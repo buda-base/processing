@@ -1,7 +1,7 @@
 #!/bin/sh
 
 dateTimeStamp=`date +'%Y%m%d_%H%M%S'`
-auditLog="/Users/tbrc/staging/processing/scripts/audit-sync-workflow/test/audit/logs/audit_log_${dateTimeStamp}.txt"
+auditLog="/Users/tbrc/staging/sync2archive/logs/audit_log_${dateTimeStamp}.txt"
 
 echo "" | tee -a $auditLog
 echo "*****************************************************************" | tee -a $auditLog
@@ -9,8 +9,6 @@ echo "* #1 - ARCHIVE/IMAGES FILE COUNT MATCH" | tee -a $auditLog
 echo "*****************************************************************" | tee -a $auditLog
 
 auditCheck1Failed=false
-
-cd ../works
 
 for w in `ls -d W*`; do
   cd $w/images
@@ -141,6 +139,39 @@ echo "* #3 - CHECK FOR FILES > 400K in IMAGES FOLDER" | tee -a $auditLog
 echo "*****************************************************************" | tee -a $auditLog
 echo "" | tee -a $auditLog
 
+auditCheck3Failed=false
+
 for w in `ls -d W*`; do
-  find $w/images -size +400k | tee -a $auditLog
+
+  if [[ -n $(find $w/images -size +400k -type f) ]]; then
+    auditCheck3Failed=true
+
+    echo ""
+    echo "------ DISCREPANCY FOUND ------" | tee -a $auditLog
+    echo "-" | tee -a $auditLog
+    echo "- IMAGES LARGER THAN 400KB FOUND" | tee -a $auditLog
+    echo "- $w/images:" | tee -a $auditLog
+    echo "-" | tee -a $auditLog
+       
+    for f in `find $w/images -size +400k -type f`; do
+      echo "- $f" | tee -a $auditLog
+    done
+
+    echo "-" | tee -a $auditLog
+    echo "-------------------------------" | tee -a $auditLog
+  fi
+
 done
+
+if $auditCheck3Failed; then
+  echo "" | tee -a $auditLog
+  echo "TOTAL IMAGES > 400KB:" | tee -a $auditLog
+  for w in `ls -d W*`; do find $w/images -size +400k; done | wc -l
+
+  echo "" | tee -a $auditLog
+  echo "=== AUDIT CHECK #3 STATUS -- FAILED ===" | tee -a $auditLog
+  echo "" | tee -a $auditLog
+else
+  echo "=== AUDIT CHECK #3 STATUS -- PASSED ===" | tee -a $auditLog
+  echo "" | tee -a $auditLog
+fi
