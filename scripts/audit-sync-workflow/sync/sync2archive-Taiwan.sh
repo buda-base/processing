@@ -7,7 +7,7 @@ fi
 
 syncType=$1
 
-src="/Volumes/staging/sync/works"
+src="/Volumes/staging/audit-and-sync/sync/works"
 
 if [ $syncType = "archive" ] ; then
 	dest="admin@inner.tbrc.org:/volume1/Archive"
@@ -20,10 +20,11 @@ xtime=`date +"%r"`
 xmlDateTimeNum=`date -u +%F%H%M | sed 's/-//g' | sed 's/://g'`
 xmlDateTimeUTC=`date -u +%FT%T.000Z`
 
-emailFile="/Volumes/staging/sync/logs/emailData.txt"
-logFile="/Volumes/staging/sync/logs/sync-${syncType}-${xdate}.txt"
+emailFile="/Volumes/staging/audit-and-sync/sync/logs/emailData.txt"
+logFile="/Volumes/staging/audit-and-sync/sync/logs/sync-${syncType}-${xdate}.txt"
+sanityCheckFile="/Volumes/staging/audit-and-sync/sync/logs/sanity-check-${syncType}-${xdate}.txt"
 xmlFileName="synced-${xmlDateTimeNum}.xml"
-xmlFileFullPath="/Volumes/staging/sync/logs/$xmlFileName"
+xmlFileFullPath="/Volumes/staging/audit-and-sync/sync/logs/$xmlFileName"
 
 syncUserCreds="archive.sync:4-K@t-knight"
 existDBSyncedURL="http://www.tbrc.org:51173/exist/rest/db/tbrc/synced"
@@ -101,10 +102,28 @@ echo "***********************************************" | tee -a $logFile
 echo $'\n' | tee -a $logFile
 
 # email sanity check information
-echo "File count comparison:" > $emailFile
+echo "File count comparison:" > $sanityCheckFile
 
-echo $'\n' >> $emailFile
-echo "${totalWorksSynced} out of ${totalWorks} Work(s) have been synced to ${dest}" >> $emailFile
+for workFolder in `ls $src`;
+do
+  printf "\n${workFolder}\n" >> $sanityCheckFile
+
+  if [ $syncType = "archive" ] ; then
+    srcFiles=$(find ${src}/$workFolder -type f | wc -l | xargs)
+    destFiles=$(ssh -p 15363 admin@inner.tbrc.org "find /volume1/Archive/$workFolder -type f ! -size 0 | wc -l | xargs")
+
+    echo "Src=${srcFiles}" >> $sanityCheckFile
+    echo "Dest=${destFiles}" >> $sanityCheckFile
+  elif [ $syncType = "web" ] ; then
+    srcFiles=$(find ${src}/$workFolder/images -type f | wc -l | xargs)
+    destFiles=$(~/Library/Python/3.5/bin/aws s3 ls s3://archive.tbrc.org/Works/$hashDir/$workFolder/images --recursive | wc -l | xargs)
+    echo "Src=${srcFiles}" >> $sanityCheckFile
+    echo "Dest=${destFiles}" >> $sanityCheckFile
+  fi
+done
+
+echo $'\n' >> $sanityCheckFile
+echo "${totalWorksSynced} out of ${totalWorks} Work(s) have been synced to ${dest}" >> $sanityCheckFile
 
 #cat $emailFile | mail -s "Sanity check for recent sync" travis@tbrc.org
 rm $emailFile

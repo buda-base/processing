@@ -1,7 +1,11 @@
 #!/bin/sh
 
 dateTimeStamp=`date +'%Y%m%d_%H%M%S'`
-auditLog="/Users/tbrc/staging/sync2archive/logs/audit_log_${dateTimeStamp}.txt"
+auditLog="/Volumes/staging/audit-and-sync/audit//logs/audit_log_${dateTimeStamp}.txt"
+auditWorks="../works"
+
+cd $auditWorks
+
 
 echo "" | tee -a $auditLog
 echo "*****************************************************************" | tee -a $auditLog
@@ -61,6 +65,12 @@ echo "*****************************************************************" | tee -
 echo "* #2 - CHECK FILENAME CORRECTNESS" | tee -a $auditLog
 echo "*****************************************************************" | tee -a $auditLog
 echo "" | tee -a $auditLog
+
+echo "" | tee -a $auditLog
+echo "***Clearing temp files...***" | tee -a $auditLog
+echo "" | tee -a $auditLog
+
+sh ../scripts/delete_temp_files.sh
 
 auditCheck2Failed=false
 
