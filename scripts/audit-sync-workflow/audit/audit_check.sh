@@ -17,36 +17,47 @@ auditCheck1Failed=false
 for w in `ls -d W*`; do
   cd $w/images
 
-  for d in `ls`; do
-    cd $d
+  numImgGroupDirs=`find . -type d | wc -l | xargs`
 
-    if [ -d "../../archive/$d" ]; then
-      archive_num=`ls ../../archive/$d/*.* | wc -l`
-      images_num=`ls *.* | wc -l`
+  if [ $numImgGroupDirs -gt 1 ]; then
+    for d in `ls`; do
+      cd $d
 
-      if [ $archive_num -ne $images_num ]; then
+      if [ -d "../../archive/$d" ]; then
+        archive_num=`ls ../../archive/$d/*.* | wc -l`
+        images_num=`ls *.* | wc -l`
+
+        if [ $archive_num -ne $images_num ]; then
+          auditCheck1Failed=true
+
+          echo "" | tee -a $auditLog
+          echo "------ DISCREPANCY FOUND ------" | tee -a $auditLog
+          echo "- $d" | tee -a $auditLog
+          echo "- a: $archive_num" | tee -a $auditLog
+          echo "- i: $images_num" | tee -a $auditLog
+          echo "-------------------------------" | tee -a $auditLog
+        fi
+      else
         auditCheck1Failed=true
 
         echo "" | tee -a $auditLog
         echo "------ DISCREPANCY FOUND ------" | tee -a $auditLog
-        echo "- $d" | tee -a $auditLog
-        echo "- a: $archive_num" | tee -a $auditLog
-        echo "- i: $images_num" | tee -a $auditLog
+        echo "- Cannot perform comparison." | tee -a $auditLog
+        echo "- The folder $w/archive/$d does not exist." | tee -a $auditLog
         echo "-------------------------------" | tee -a $auditLog
       fi
-    else
-      auditCheck1Failed=true
 
-      echo "" | tee -a $auditLog
-      echo "------ DISCREPANCY FOUND ------" | tee -a $auditLog
-      echo "- Cannot perform comparison." | tee -a $auditLog
-      echo "- The folder $w/archive/$d does not exist." | tee -a $auditLog
-      echo "-------------------------------" | tee -a $auditLog
-    fi
+      cd ..
+    done
+  else
+    auditCheck1Failed=true
 
-    cd ..
-  done
-
+    echo "" | tee -a $auditLog
+    echo "------ DISCREPANCY FOUND ------" | tee -a $auditLog
+    echo "- Cannot perform comparison." | tee -a $auditLog
+    echo "- The folder $w/images does not contain image group directories." | tee -a $auditLog
+    echo "-------------------------------" | tee -a $auditLog 
+  fi
   cd ../..
 done
 
