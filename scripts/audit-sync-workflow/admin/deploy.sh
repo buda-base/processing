@@ -22,7 +22,6 @@ while [ ! $# -eq 0 ]; do
     --update | -u)
       
       rsync -av ../audit/ $workflowDir/audit/scripts
-      #rsync -av ../fix/ $workflowDir/fix/scripts
       rsync -av ../sync/ $workflowDir/sync/scripts
 
       exit
