@@ -33,6 +33,9 @@ existDBIGUpdaterURL="http://www.tbrc.org:51173/exist/rest/db/modules/admin/image
 totalWorks=0
 totalWorksSynced=0
 
+syncSuccessPath="/Volumes/staging/audit-and-sync/z_done/sync-${xdate}"
+syncFailPath="/Volumes/staging/audit-and-sync/z_problems/to-be-reviewed-by-travis/sync_issues"
+
 if [ ! -d $src ] ; then
 	echo "ERROR: ${src} does not exist" | tee -a $logFile
 	exit 1
@@ -101,6 +104,10 @@ echo "${totalWorksSynced}\\${totalWorks} Work(s) have been synced to ${dest}" | 
 echo "***********************************************" | tee -a $logFile
 echo $'\n' | tee -a $logFile
 
+if [ ! -d "$syncSuccessPath" ]; then
+  mkdir -p $syncSuccessPath
+fi
+
 # email sanity check information
 echo "File count comparison:" > $sanityCheckFile
 
@@ -108,17 +115,29 @@ for workFolder in `ls $src`;
 do
   printf "\n${workFolder}\n" >> $sanityCheckFile
 
+  archiveSyncMatch=false
+  webSyncMatch=false
+
   if [ $syncType = "archive" ] ; then
     srcFiles=$(find ${src}/$workFolder -type f | wc -l | xargs)
     destFiles=$(ssh -p 15363 admin@inner.tbrc.org "find /volume1/Archive/$workFolder -type f ! -size 0 | wc -l | xargs")
 
     echo "Src=${srcFiles}" >> $sanityCheckFile
     echo "Dest=${destFiles}" >> $sanityCheckFile
+
+    if [ $srcFiles -eq $destFiles ]; then
+      archiveSyncMatch=true
+    fi
   elif [ $syncType = "web" ] ; then
+    hashDir=`printf "$workFolder" | md5 | cut -c1-2`
     srcFiles=$(find ${src}/$workFolder/images -type f | wc -l | xargs)
     destFiles=$(~/Library/Python/3.5/bin/aws s3 ls s3://archive.tbrc.org/Works/$hashDir/$workFolder/images --recursive | wc -l | xargs)
     echo "Src=${srcFiles}" >> $sanityCheckFile
     echo "Dest=${destFiles}" >> $sanityCheckFile
+   
+    if [ $srcFiles -eq $destFiles ]; then
+      webSyncMatch=true
+    fi
   fi
 done
 
@@ -126,7 +145,7 @@ echo $'\n' >> $sanityCheckFile
 echo "${totalWorksSynced} out of ${totalWorks} Work(s) have been synced to ${dest}" >> $sanityCheckFile
 
 #cat $emailFile | mail -s "Sanity check for recent sync" travis@tbrc.org
-rm $emailFile
+#rm $emailFile
 
 if [ $syncType = "web" ] ; then
   # create XML data for WEB sync event
