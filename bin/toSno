@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+snob=${snob:-~/tmp/snowball}
+for tb in $* ; do
+    [ -d $tb ] && continue
+    l=$(basename $tb) 
+    logfile=../log/${l}.tar.log
+    echo $tb >> $logfile
+     upOneSno.sh $tb $snob/share/RS4/Incoming/ ${l}.tar | tee -a $logfile
+done
+

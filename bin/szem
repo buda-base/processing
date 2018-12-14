@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+ for f in $* ; do printf "%s\t" $(basename $f) ; awk -FG '{sum += $1} END {print sum}' $f ; done

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+export cmd=$1
+shift
+export args="$*"
+aws s3 $cmd --profile snowballEdge --endpoint https://10.0.1.141:8443 --ca-bundle $snob/10-0-1-141.pem $args

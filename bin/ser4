@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+for tb in incoming.7/pass3/*a[ab]; do l=$(basename $tb) ;  { upOneSno.sh $tb ../share/RS4/Incoming ${l}.tar | tee ../log/${l}.tar.log ; }  ; done 
