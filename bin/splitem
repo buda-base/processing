@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-[ ! -d orig ] && { mkdir orig ; }
-for f in $* ; do split -nl/2 $f $f ; [ $? == "0" ] && { mv $f orig ; } ; done
